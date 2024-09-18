@@ -11,7 +11,7 @@ trait ExtractMessage
      * get all headers of a message part
      *
      * @param \Google_Service_Gmail_MessagePart|null $part
-     * @return Collection<int, \Google_Service_Gmail_MessagePartHeader>
+     * @return Collection<\Google_Service_Gmail_MessagePartHeader>
      */
     protected function getPartHeaders($part)
     {
@@ -24,7 +24,7 @@ trait ExtractMessage
     /**
      * get header by name from given headers
      * @param string $name
-     * @param Collection<int, \Google_Service_Gmail_MessagePartHeader>|null $headers
+     * @param Collection<\Google_Service_Gmail_MessagePartHeader>|null $headers
      * @return string|null
      */
     protected function getHeaderValue($name, $headers)
@@ -40,7 +40,7 @@ trait ExtractMessage
     /**
      * parse recipients from a string
      * @param string $str
-     * @return Collection<int, GmailMessageRecipient>
+     * @return Collection<GmailMessageRecipient>
      */
     protected function parseRecipients($str)
     {
@@ -65,8 +65,8 @@ trait ExtractMessage
 
     /**
      * parse attachments from a message part
-     * @param Collection<int, \Google_Service_Gmail_MessagePart> $parts
-     * @return Collection<int, GmailMessageAttachment>
+     * @param Collection<\Google_Service_Gmail_MessagePart> $parts
+     * @return Collection<GmailMessageAttachment>
      */
     protected function parseAttachments($parts)
     {
@@ -78,10 +78,10 @@ trait ExtractMessage
     /**
      * Flatten deep nested parts of the message in a single collection
      *
-     * @param Collection<int, \Google_Service_Gmail_MessagePart> $parts
-     * @param Collection<int, \Google_Service_Gmail_MessagePart> $acc
+     * @param Collection<\Google_Service_Gmail_MessagePart> $parts
+     * @param Collection<\Google_Service_Gmail_MessagePart> $acc
      *
-     * @return Collection<int, \Google_Service_Gmail_MessagePart>
+     * @return Collection<\Google_Service_Gmail_MessagePart>
      */
     protected function getFlatPartsCollection($parts, $acc)
     {
@@ -105,7 +105,7 @@ trait ExtractMessage
      * get raw body data from given content type
      *
      * @param string $contentType
-     * @param Collection<int, \Google_Service_Gmail_MessagePart|null> $flatPartsCollection
+     * @param Collection<\Google_Service_Gmail_MessagePart|null> $flatPartsCollection
      *
      * @return string
      */

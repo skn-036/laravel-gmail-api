@@ -42,7 +42,7 @@ class GmailMessageAttachment
     /**
      * Attachment constructor.
      *
-     * @param \Google_Service_Gmail_MessagePart|string $partOfId;
+     * @param \Google_Service_Gmail_MessagePart|string $partOrId;
      */
     public function __construct($partOrId)
     {

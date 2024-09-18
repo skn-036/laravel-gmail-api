@@ -33,7 +33,7 @@ class GmailMessagesList
 
     /**
      * Estimated messages count in gmail
-     * @var int
+     * @var int|string
      */
     public $total;
 
@@ -46,9 +46,9 @@ class GmailMessagesList
     /**
      * Summary of __construct
      *
-     * @param Collection<int, GmailMessage>|array<int, GmailMessage> $messages
+     * @param Collection<GmailMessage>|array<GmailMessage> $messages
      * @param MessageResponse $response
-     * @param int $estimatedDocumentCount
+     * @param int|string $estimatedDocumentCount
      */
     public function __construct($response, $messages = [], $estimatedDocumentCount = 0)
     {
@@ -63,7 +63,7 @@ class GmailMessagesList
 
     /**
      * Fetch the messages from next page
-     * @return static
+     * @return \Skn036\Gmail\Message\GmailMessagesList
      */
     public function next()
     {
