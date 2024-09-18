@@ -3,7 +3,7 @@
 namespace Skn036\Gmail;
 
 use Skn036\Google\GoogleClient;
-use Skn036\Gmail\Message\FetchMessage;
+use Skn036\Gmail\Message\MessageResponse;
 use Skn036\Gmail\Exceptions\TokenNotValidException;
 
 class Gmail extends GoogleClient
@@ -36,7 +36,7 @@ class Gmail extends GoogleClient
 
     /**
      * Get the current instance
-     * sometime you may need to get the current instance of the Gmail class accessing facade
+     * sometime we may need to get the current instance accessing using facade
      * like $gmail = Gmail::instance();
      *
      * @return static
@@ -49,14 +49,14 @@ class Gmail extends GoogleClient
     /**
      * To fetching gmail messages
      *
-     * @return FetchMessage
+     * @return MessageResponse
      * @throws TokenNotValidException
      */
     public function messages()
     {
         $this->throwExceptionIfNotAuthenticated();
 
-        return new FetchMessage($this);
+        return new MessageResponse($this);
     }
 
     /**

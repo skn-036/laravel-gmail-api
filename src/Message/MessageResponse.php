@@ -1,11 +1,10 @@
 <?php
 namespace Skn036\Gmail\Message;
 
+use Skn036\Gmail\Filters\GmailFilter;
 use Skn036\Gmail\Gmail;
-use Illuminate\Support\Collection;
-use Skn036\Gmail\Filters\FilterParams;
 
-class FetchMessage
+class MessageResponse extends GmailFilter
 {
     /**
      * Gmail Client
@@ -20,20 +19,6 @@ class FetchMessage
     protected $service;
 
     /**
-     * Optional parameter for getting multiple emails
-     *
-     * @var FilterParams
-     */
-    public $filters;
-
-    /**
-     * Previous page token
-     *
-     * @var Collection<int, string|null>
-     */
-    public $pageTokens = [];
-
-    /**
      * Create a new GmailMessage instance.
      *
      * @param Gmail $client
@@ -44,54 +29,30 @@ class FetchMessage
     {
         $this->client = $client;
         $this->service = $client->initiateService();
-        $this->filters = new FilterParams();
     }
 
     /**
      * List messages
      *
-     * @param int|null $perPage
-     * @return GmailMessageCollection
+     * @param string|null $pageToken
+     * @return GmailMessagesList
      */
-    public function list($perPage = null)
+    public function list($pageToken = null)
     {
-        $this->filters->pageTokens = collect([null]);
-        $this->maxResults($perPage);
-        return $this->getPaginatedListResponse(null);
+        return $this->getPaginatedListResponse($pageToken);
     }
 
     /**
      * Fetch messages from next page
-     *
-     * @return GmailMessageCollection
+     * @return GmailMessagesList
      */
     public function next()
     {
-        if ($this->filters->hasNextPage()) {
-            return $this->getPaginatedListResponse($this->filters->nextPageToken);
+        if ($this->hasNextPage()) {
+            return $this->getPaginatedListResponse($this->nextPageToken);
         } else {
-            return new GmailMessageCollection($this, []);
+            return new GmailMessagesList($this, []);
         }
-    }
-
-    /**
-     * Fetch messages from previous page
-     *
-     * @return GmailMessageCollection
-     */
-    public function previous()
-    {
-        if (!$this->filters->hasPreviousPage()) {
-            return new GmailMessageCollection($this, []);
-        }
-        $previousPageToken = $this->filters->getPreviousPageToken();
-
-        // clear all the page tokens including the previousPageToken
-        // previousPageToken will be added to pageTokens in getPaginatedListResponse
-        $previousTokenIndex = $this->pageTokens->search($previousPageToken) ?: 0;
-        $this->pageTokens = $this->pageTokens->take($previousTokenIndex);
-
-        return $this->getPaginatedListResponse($previousPageToken);
     }
 
     /**
@@ -104,31 +65,6 @@ class FetchMessage
     {
         $message = $this->getGmailMessageResponse($id);
         return new GmailMessage($message);
-    }
-
-    /**
-     * sets param to fetch spam and trash messages on list response
-     *
-     * @return static
-     */
-    public function includeSpamTrash()
-    {
-        $this->filters->setParam('includeSpamTrash', true);
-        return $this;
-    }
-
-    /**
-     * sets param to fetch no of messages with the given query
-     *
-     * @param string|int|null $perPage
-     * @return static
-     */
-    public function maxResults($perPage)
-    {
-        if ($perPage && (int) $perPage > 0) {
-            $this->filters->setParam('maxResults', $perPage);
-        }
-        return $this;
     }
 
     /**
@@ -157,34 +93,33 @@ class FetchMessage
      * Get paginated list response
      *
      * @param string|null $currentPageToken
-     * @return GmailMessageCollection
+     * @return GmailMessagesList
      */
     protected function getPaginatedListResponse($currentPageToken = null)
     {
-        $this->filters->setParam('currentPageToken', $currentPageToken);
-        $this->filters->addCurrentPageTokenToPageTokens();
+        $this->setFilterParam('currentPageToken', $currentPageToken);
 
-        $params = $this->filters->getParams();
+        $params = $this->prepareFilterParams();
         $response = $this->getGmailMessageListResponse($params);
 
         if ($nextPageToken = $response->getNextPageToken()) {
-            $this->filters->setParam('nextPageToken', $nextPageToken);
+            $this->setFilterParam('nextPageToken', $nextPageToken);
         } else {
-            $this->filters->setParam('nextPageToken', null);
+            $this->setFilterParam('nextPageToken', null);
         }
 
         $estimatedMessagesCount = $response->getResultSizeEstimate();
         $messages = $response->getMessages();
 
         if (!$messages || !is_array($messages) || !count($messages)) {
-            return new GmailMessageCollection($this, [], $estimatedMessagesCount);
+            return new GmailMessagesList($this, [], $estimatedMessagesCount);
         }
         $processedMessages = array_map(
             fn($message) => new GmailMessage($message),
             array_values($this->getMessageDetailsOnBatch($messages))
         );
 
-        return new GmailMessageCollection($this, $processedMessages, $estimatedMessagesCount);
+        return new GmailMessagesList($this, $processedMessages, $estimatedMessagesCount);
     }
 
     /**
