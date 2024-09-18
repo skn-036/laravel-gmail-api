@@ -8,6 +8,7 @@ use Skn036\Gmail\Message\Traits\ExtractMessage;
 class GmailMessage
 {
     use ExtractMessage;
+
     /**
      * Message from gmail
      * @var \Google_Service_Gmail_Message
@@ -229,7 +230,7 @@ class GmailMessage
      */
     protected function setHeaderMessageId()
     {
-        $this->headerMessageId = $this->getHeader('message-id', $this->rawHeaders);
+        $this->headerMessageId = $this->getHeader('message-id');
         return $this;
     }
 
@@ -239,7 +240,7 @@ class GmailMessage
      */
     protected function setReplyTo()
     {
-        $this->replyTo = $this->getHeader('in-reply-to', $this->rawHeaders);
+        $this->replyTo = $this->getHeader('in-reply-to');
         return $this;
     }
 
@@ -249,7 +250,7 @@ class GmailMessage
      */
     protected function setFrom()
     {
-        $fromStr = $this->getHeader('from', $this->rawHeaders) ?: '';
+        $fromStr = $this->getHeader('from') ?: '';
         $recipients = $this->parseRecipients($fromStr);
         if ($recipients->count() > 0) {
             $this->from = $recipients->first();
@@ -265,7 +266,7 @@ class GmailMessage
      */
     protected function setTo()
     {
-        $this->to = $this->parseRecipients($this->getHeader('to', $this->rawHeaders) ?: '');
+        $this->to = $this->parseRecipients($this->getHeader('to') ?: '');
         return $this;
     }
 
@@ -275,7 +276,7 @@ class GmailMessage
      */
     protected function setCc()
     {
-        $this->cc = $this->parseRecipients($this->getHeader('cc', $this->rawHeaders) ?: '');
+        $this->cc = $this->parseRecipients($this->getHeader('cc') ?: '');
         return $this;
     }
 
@@ -285,7 +286,7 @@ class GmailMessage
      */
     protected function setBcc()
     {
-        $this->bcc = $this->parseRecipients($this->getHeader('bcc', $this->rawHeaders) ?: '');
+        $this->bcc = $this->parseRecipients($this->getHeader('bcc') ?: '');
         return $this;
     }
 
@@ -305,7 +306,7 @@ class GmailMessage
      */
     protected function setSubject()
     {
-        $this->subject = $this->getHeader('subject', $this->rawHeaders) ?: '';
+        $this->subject = $this->getHeader('subject') ?: '';
         return $this;
     }
 
@@ -315,7 +316,7 @@ class GmailMessage
      */
     protected function setDate()
     {
-        $date = $this->getHeader('date', $this->rawHeaders);
+        $date = $this->getHeader('date');
         $date = preg_replace('/\([^)]+\)/', '', $date);
         $this->date = Carbon::parse(preg_replace('/\s+/', ' ', $date));
         return $this;
@@ -362,5 +363,15 @@ class GmailMessage
     {
         $this->historyId = $this->message->getHistoryId();
         return $this;
+    }
+
+    /**
+     * get header by name
+     * @param string $name
+     * @return string|null
+     */
+    protected function getHeader($name)
+    {
+        return $this->getHeaderValue($name, $this->rawHeaders);
     }
 }

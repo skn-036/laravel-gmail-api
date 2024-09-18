@@ -22,12 +22,12 @@ trait ExtractMessage
     }
 
     /**
-     * get header by name
+     * get header by name from given headers
      * @param string $name
      * @param Collection<int, \Google_Service_Gmail_MessagePartHeader>|null $headers
      * @return string|null
      */
-    protected function getHeader($name, $headers)
+    protected function getHeaderValue($name, $headers)
     {
         $name = strtolower($name);
         $header = $headers->first(fn($header) => strtolower($header->getName()) === $name);
@@ -116,7 +116,7 @@ trait ExtractMessage
                 return false;
             }
             $headers = collect($part->getHeaders());
-            $contentTypeHeader = $this->getHeader('content-type', $headers);
+            $contentTypeHeader = $this->getHeaderValue('content-type', $headers);
             if (!$contentTypeHeader) {
                 return false;
             }
