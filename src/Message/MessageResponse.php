@@ -133,6 +133,7 @@ class MessageResponse extends GmailFilter
         $this->client->setUseBatch(true);
         $batch = $this->service->createBatch();
         foreach ($messages as $message) {
+            // @phpstan-ignore-next-line
             $batch->add($this->getGmailMessageResponse($message->getId()));
         }
 

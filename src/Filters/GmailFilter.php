@@ -67,37 +67,37 @@ class GmailFilter
 
     /**
      * list field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qRecipient;
 
     /**
      * from field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qFrom;
 
     /**
      * to field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qTo;
 
     /**
      * cc field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qCc;
 
     /**
      * bcc field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qBcc;
 
     /**
      * subject field in gmail search string
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qSubject;
 
@@ -106,7 +106,7 @@ class GmailFilter
      * valid values are label ids on the gmail
      * for more info: https://developers.google.com/gmail/api/guides/labels
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qLabel;
 
@@ -115,7 +115,7 @@ class GmailFilter
      * valid values are: primary, social, promotions, updates, forums, reservations, purchases
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qCategory;
 
@@ -123,7 +123,7 @@ class GmailFilter
      * has field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qHas;
 
@@ -131,7 +131,7 @@ class GmailFilter
      * is field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qIs;
 
@@ -139,7 +139,7 @@ class GmailFilter
      * in field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qIn;
 
@@ -147,7 +147,7 @@ class GmailFilter
      * in field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qFilename;
 
@@ -155,7 +155,7 @@ class GmailFilter
      * size field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qSize;
 
@@ -163,7 +163,7 @@ class GmailFilter
      * smaller field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qSmaller;
 
@@ -171,7 +171,7 @@ class GmailFilter
      * larger field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qLarger;
 
@@ -179,7 +179,7 @@ class GmailFilter
      * older_than field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qOlder;
 
@@ -187,7 +187,7 @@ class GmailFilter
      * newer_than field in gmail search string
      * for more info: https://developers.google.com/gmail/api/guides/filtering
      *
-     * @var Collection<int, LogicallyOperableField>
+     * @var Collection<int, LogicallyOperableField>|null
      */
     protected $qNewer;
 
@@ -679,7 +679,7 @@ class GmailFilter
                 continue;
             }
             foreach ($this->$field as $fieldValue) {
-                $q = $this->addLogicallyOperableFieldToQString($q, $fieldValue, $fieldQName);
+                $q = $this->addLogicallyOperableFieldToQString($fieldValue, $fieldQName, $q);
             }
         }
         return $q;
@@ -694,7 +694,7 @@ class GmailFilter
      *
      * @return string
      */
-    private function addLogicallyOperableFieldToQString($q = '', $fieldValue, $fieldQName)
+    private function addLogicallyOperableFieldToQString($fieldValue, $fieldQName, $q = '')
     {
         if (!($fieldValue instanceof LogicallyOperableField)) {
             return $q;

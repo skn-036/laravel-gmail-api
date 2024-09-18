@@ -17,13 +17,13 @@ class GmailMessage
 
     /**
      * Summary of rawHeaders
-     * @var Collection<int, \Google_Service_Gmail_MessagePartHeader>
+     * @var Collection<\Google_Service_Gmail_MessagePartHeader>
      */
     protected $rawHeaders;
 
     /**
      * All parts are flatten to single collection including multi-level nested parts
-     * @var Collection<int, \Google_Service_Gmail_MessagePart>
+     * @var Collection<\Google_Service_Gmail_MessagePart>
      */
     protected $allPartsIncludingNested;
 
@@ -59,19 +59,19 @@ class GmailMessage
 
     /**
      * To recipients
-     * @var Collection<int, GmailMessageRecipient>
+     * @var Collection<GmailMessageRecipient>
      */
     public $to;
 
     /**
      * Cc recipients
-     * @var Collection<int, GmailMessageRecipient>
+     * @var Collection<GmailMessageRecipient>
      */
     public $cc;
 
     /**
      * Bcc recipients
-     * @var Collection<int, GmailMessageRecipient>
+     * @var Collection<GmailMessageRecipient>
      */
     protected $bcc;
 
@@ -197,7 +197,7 @@ class GmailMessage
      * By default bcc will not be available on public properties of the message
      * if needed this function should be called
      *
-     * @return Collection<int, GmailMessageRecipient>
+     * @return Collection<GmailMessageRecipient>
      */
     public function getBcc()
     {
