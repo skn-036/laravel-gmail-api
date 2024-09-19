@@ -3,7 +3,7 @@
 namespace Skn036\Gmail;
 
 use Skn036\Google\GoogleClient;
-use Skn036\Gmail\Message\MessageResponse;
+use Skn036\Gmail\Message\GmailMessageResponse;
 use Skn036\Gmail\Exceptions\TokenNotValidException;
 
 class Gmail extends GoogleClient
@@ -49,14 +49,12 @@ class Gmail extends GoogleClient
     /**
      * To fetching gmail messages
      *
-     * @return MessageResponse
+     * @return GmailMessageResponse
      * @throws TokenNotValidException
      */
     public function messages()
     {
-        $this->throwExceptionIfNotAuthenticated();
-
-        return new MessageResponse($this);
+        return new GmailMessageResponse($this);
     }
 
     /**
@@ -67,7 +65,7 @@ class Gmail extends GoogleClient
      * @return void
      * @throws TokenNotValidException
      */
-    private function throwExceptionIfNotAuthenticated()
+    public function throwExceptionIfNotAuthenticated()
     {
         if (!$this->isAuthenticated()) {
             throw new TokenNotValidException();

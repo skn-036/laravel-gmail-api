@@ -10,6 +10,12 @@ class GmailMessageAttachment
     protected $partOrId;
 
     /**
+     * Id of the message
+     * @var string
+     */
+    protected $messageId;
+
+    /**
      * Attachment Id
      * @var string
      */
@@ -43,9 +49,12 @@ class GmailMessageAttachment
      * Attachment constructor.
      *
      * @param \Google_Service_Gmail_MessagePart|string $partOrId;
+     * @param string $messageId
      */
-    public function __construct($partOrId)
-    {
+    public function __construct(
+        \Google_Service_Gmail_MessagePart|string $partOrId,
+        string $messageId
+    ) {
         $this->partOrId = $partOrId;
 
         if ($partOrId instanceof \Google_Service_Gmail_MessagePart) {
@@ -53,6 +62,8 @@ class GmailMessageAttachment
         } else {
             $this->id = $partOrId;
         }
+
+        $this->messageId = $messageId;
     }
 
     /**

@@ -5,7 +5,7 @@ class LogicallyOperableField
 {
     /**
      * filters for the field
-     * @var string|array<string>
+     * @var array<string>
      */
     public $filters;
 
@@ -17,7 +17,13 @@ class LogicallyOperableField
      */
     public $operator;
 
-    public function __construct($filterOrFilters, $operator = null)
+    /**
+     * Summary of __construct
+     *
+     * @param string|array $filterOrFilters
+     * @param string|null $operator
+     */
+    public function __construct(string|array $filterOrFilters, string|null $operator = null)
     {
         if (!is_array($filterOrFilters)) {
             $filterOrFilters = [$filterOrFilters];

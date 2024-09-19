@@ -265,8 +265,7 @@ class GmailFilter
      */
     public function includeSpamTrash()
     {
-        $this->setFilterParam('includeSpamTrash', true);
-        return $this;
+        return $this->setFilterParam('includeSpamTrash', true);
     }
 
     /**
@@ -275,7 +274,7 @@ class GmailFilter
      * @param string|int|null $perPage
      * @return static
      */
-    public function maxResults($perPage)
+    public function maxResults(string|int|null $perPage)
     {
         if ($perPage && (int) $perPage > 0) {
             $this->setFilterParam('maxResults', $perPage);
@@ -292,7 +291,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function recipient($emailOrEmails, $operator = null)
+    public function recipient(string|array $emailOrEmails, string|null $operator = null)
     {
         return $this->setFilterParam('qRecipient', $emailOrEmails, $operator);
     }
@@ -305,7 +304,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function from($emailOrEmails, $operator = null)
+    public function from(string|array $emailOrEmails, string|null $operator = null)
     {
         return $this->setFilterParam('qFrom', $emailOrEmails, $operator);
     }
@@ -318,7 +317,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function to($emailOrEmails, $operator = null)
+    public function to(string|array $emailOrEmails, string|null $operator = null)
     {
         return $this->setFilterParam('qTo', $emailOrEmails, $operator);
     }
@@ -331,7 +330,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function cc($emailOrEmails, $operator = null)
+    public function cc(string|array $emailOrEmails, string|null $operator = null)
     {
         return $this->setFilterParam('qCc', $emailOrEmails, $operator);
     }
@@ -344,7 +343,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function bcc($emailOrEmails, $operator = null)
+    public function bcc(string|array $emailOrEmails, string|null $operator = null)
     {
         return $this->setFilterParam('qBcc', $emailOrEmails, $operator);
     }
@@ -356,7 +355,7 @@ class GmailFilter
      * @param string $subject
      * @return static
      */
-    public function subject($subject)
+    public function subject(string $subject)
     {
         // preventing subject for setting multiple times as gmail only expects one subject
         if ($this->qSubject instanceof Collection) {
@@ -375,7 +374,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function label($labelOrLabels, $operator = null)
+    public function label(string|array $labelOrLabels, string|null $operator = null)
     {
         return $this->setFilterParam('qLabel', $labelOrLabels, $operator);
     }
@@ -390,7 +389,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function category($categoryOrCategories, $operator = null)
+    public function category(string|array $categoryOrCategories, string|null $operator = null)
     {
         return $this->setFilterParam('qCategory', $categoryOrCategories, $operator);
     }
@@ -404,7 +403,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function has($has, $operator = null)
+    public function has(string|array $has, string|null $operator = null)
     {
         return $this->setFilterParam('qHas', $has, $operator);
     }
@@ -418,7 +417,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function is($is, $operator = null)
+    public function is(string|array $is, string|null $operator = null)
     {
         return $this->setFilterParam('qIs', $is, $operator);
     }
@@ -432,7 +431,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function in($in, $operator = null)
+    public function in(string|array $in, string|null $operator = null)
     {
         return $this->setFilterParam('qIn', $in, $operator);
     }
@@ -444,7 +443,7 @@ class GmailFilter
      * @param string $size
      * @return static
      */
-    public function size($size)
+    public function size(string $size)
     {
         // preventing setting multiple times as gmail only expects one
         if ($this->qSize instanceof Collection) {
@@ -460,7 +459,7 @@ class GmailFilter
      * @param string $emailSize
      * @return static
      */
-    public function smallerThan($emailSize)
+    public function smallerThan(string $emailSize)
     {
         // preventing setting multiple times as gmail only expects one
         if ($this->qSmaller instanceof Collection) {
@@ -476,7 +475,7 @@ class GmailFilter
      * @param string $emailSize
      * @return static
      */
-    public function largerThan($emailSize)
+    public function largerThan(string $emailSize)
     {
         // preventing setting multiple times as gmail only expects one
         if ($this->qLarger instanceof Collection) {
@@ -492,7 +491,7 @@ class GmailFilter
      * @param string $dateDifference
      * @return static
      */
-    public function olderThan($dateDifference)
+    public function olderThan(string $dateDifference)
     {
         // preventing setting multiple times as gmail only expects one
         if ($this->qOlder instanceof Collection) {
@@ -508,7 +507,7 @@ class GmailFilter
      * @param string $dateDifference
      * @return static
      */
-    public function newerThan($dateDifference)
+    public function newerThan(string $dateDifference)
     {
         // preventing setting multiple times as gmail only expects one
         if ($this->qNewer instanceof Collection) {
@@ -524,7 +523,7 @@ class GmailFilter
      * @param string|int|Carbon $date
      * @return static
      */
-    public function before($date)
+    public function before(string|int|Carbon $date)
     {
         $timestamp = Carbon::parse($date)->timestamp;
         return $this->setFilterParam('qBefore', $timestamp);
@@ -537,7 +536,7 @@ class GmailFilter
      * @param string|int|Carbon $date
      * @return static
      */
-    public function after($date)
+    public function after(string|int|Carbon $date)
     {
         $timestamp = Carbon::parse($date)->timestamp;
         return $this->setFilterParam('qAfter', $timestamp);
@@ -550,7 +549,7 @@ class GmailFilter
      * @param string $wordOrPhrase
      * @return static
      */
-    public function matchExact($wordOrPhrase)
+    public function matchExact(string $wordOrPhrase)
     {
         return $this->setFilterParam('qMatchExact', '"' . $wordOrPhrase . '"');
     }
@@ -561,7 +560,7 @@ class GmailFilter
      * @param string $wordOrPhrase
      * @return static
      */
-    public function search($wordOrPhrase)
+    public function search(string $wordOrPhrase)
     {
         return $this->matchExact($wordOrPhrase);
     }
@@ -573,7 +572,7 @@ class GmailFilter
      * @param string $word
      * @return static
      */
-    public function includeWord($word)
+    public function includeWord(string $word)
     {
         return $this->setFilterParam('qIncludeWord', '+' . $word);
     }
@@ -585,7 +584,7 @@ class GmailFilter
      * @param string $word
      * @return static
      */
-    public function excludeWord($word)
+    public function excludeWord(string $word)
     {
         return $this->setFilterParam('qIncludeWord', '-' . $word);
     }
@@ -597,7 +596,7 @@ class GmailFilter
      * @param string $q
      * @return static
      */
-    public function rawQuery($q)
+    public function rawQuery(string $q)
     {
         return $this->setFilterParam('q', $q);
     }
@@ -614,7 +613,7 @@ class GmailFilter
      *
      * @return static
      */
-    public function setFilterParam($param, $value, $operator = null)
+    public function setFilterParam(string $param, $value, string|null $operator = null)
     {
         if (!property_exists($this, $param)) {
             return $this;
