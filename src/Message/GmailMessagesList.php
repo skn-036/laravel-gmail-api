@@ -2,14 +2,14 @@
 namespace Skn036\Gmail\Message;
 
 use Illuminate\Support\Collection;
-use Skn036\Gmail\Message\MessageResponse;
+use Skn036\Gmail\Message\GmailMessageResponse;
 use Skn036\Gmail\Message\GmailMessage;
 
 class GmailMessagesList
 {
     /**
      * Message from gmail
-     * @var Collection<int, GmailMessage>
+     * @var Collection<GmailMessage>|array<GmailMessage>
      */
     public $messages;
 
@@ -39,7 +39,7 @@ class GmailMessagesList
 
     /**
      * Gmail fetch service
-     * @var MessageResponse
+     * @var GmailMessageResponse
      */
     private $response;
 
@@ -47,11 +47,14 @@ class GmailMessagesList
      * Summary of __construct
      *
      * @param Collection<GmailMessage>|array<GmailMessage> $messages
-     * @param MessageResponse $response
+     * @param GmailMessageResponse $response
      * @param int|string $estimatedDocumentCount
      */
-    public function __construct($response, $messages = [], $estimatedDocumentCount = 0)
-    {
+    public function __construct(
+        GmailMessageResponse $response,
+        Collection|array $messages = [],
+        string|int $estimatedDocumentCount = 0
+    ) {
         $this->messages = collect($messages);
         $this->response = $response;
         $this->total = $estimatedDocumentCount;

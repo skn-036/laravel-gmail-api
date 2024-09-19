@@ -1,14 +1,17 @@
 <?php
 namespace Skn036\Gmail\Message;
 
-use Skn036\Gmail\Filters\GmailFilter;
 use Skn036\Gmail\Gmail;
+use Skn036\Gmail\Filters\GmailFilter;
+use Skn036\Gmail\Message\Sendable\Email;
+use Skn036\Gmail\Facades\Gmail as GmailFacade;
+use Skn036\Gmail\Exceptions\TokenNotValidException;
 
-class MessageResponse extends GmailFilter
+class GmailMessageResponse extends GmailFilter
 {
     /**
      * Gmail Client
-     * @var Gmail
+     * @var Gmail|GmailFacade
      */
     protected $client;
 
@@ -23,10 +26,14 @@ class MessageResponse extends GmailFilter
      *
      * @param Gmail $client
      *
-     * @return void
+     * @throws TokenNotValidException
      */
-    public function __construct($client)
+    public function __construct(Gmail|GmailFacade $client)
     {
+        if (!$client->isAuthenticated()) {
+            $client->throwExceptionIfNotAuthenticated();
+        }
+
         $this->client = $client;
         $this->service = $client->initiateService();
     }
@@ -37,7 +44,7 @@ class MessageResponse extends GmailFilter
      * @param string|null $pageToken
      * @return GmailMessagesList
      */
-    public function list($pageToken = null)
+    public function list(string|null $pageToken = null)
     {
         return $this->getPaginatedListResponse($pageToken);
     }
@@ -61,10 +68,54 @@ class MessageResponse extends GmailFilter
      * @param string $id
      * @return GmailMessage
      */
-    public function get($id)
+    public function get(string $id)
     {
         $message = $this->getGmailMessageResponse($id);
-        return new GmailMessage($message);
+        return new GmailMessage($message, $this->client);
+    }
+
+    /**
+     * Creates a new sendable email instance
+     *
+     * @return Email
+     */
+    public function create()
+    {
+        return new Email($this->client);
+    }
+
+    /**
+     * Creates a replyable instance of the message setting proper headers, subject and thread id.
+     * This will not set the "to", "cc", "body" of the message.
+     * This is because, most of the time replied message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Message\Sendable\Email.
+     *
+     * @param GmailMessage|string $message
+     * @return Email
+     */
+    public function createReply(GmailMessage|string $message)
+    {
+        if (!($message instanceof GmailMessage)) {
+            $message = $this->get($message);
+        }
+        return $message->createReply();
+    }
+
+    /**
+     * Creates a forwarding instance of the message setting proper headers, subject and thread id.
+     * This will not set the "attachments", "to", "cc", "body" of the message.
+     * This is because, most of the time forwarded message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Message\Sendable\Email.
+     *
+     * @param GmailMessage|string $message
+     * @return Email
+     */
+    public function createForward(GmailMessage|string $message)
+    {
+        if (!($message instanceof GmailMessage)) {
+            $message = $this->get($message);
+        }
+        return $message->createForward();
     }
 
     /**
@@ -115,7 +166,7 @@ class MessageResponse extends GmailFilter
             return new GmailMessagesList($this, [], $estimatedMessagesCount);
         }
         $processedMessages = array_map(
-            fn($message) => new GmailMessage($message),
+            fn($message) => new GmailMessage($message, $this->client),
             array_values($this->getMessageDetailsOnBatch($messages))
         );
 

@@ -66,13 +66,15 @@ trait ExtractMessage
     /**
      * parse attachments from a message part
      * @param Collection<\Google_Service_Gmail_MessagePart> $parts
+     * @param string $messageId
+     *
      * @return Collection<GmailMessageAttachment>
      */
-    protected function parseAttachments($parts)
+    protected function parseAttachments($parts, $messageId)
     {
         return $parts
             ->filter(fn($part) => $part->getFilename() && $part->getBody()->getAttachmentId())
-            ->map(fn($part) => new GmailMessageAttachment($part));
+            ->map(fn($part) => new GmailMessageAttachment($part, $messageId));
     }
 
     /**

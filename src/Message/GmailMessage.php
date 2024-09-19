@@ -3,7 +3,10 @@ namespace Skn036\Gmail\Message;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Skn036\Gmail\Message\Sendable\Email;
 use Skn036\Gmail\Message\Traits\ExtractMessage;
+use Skn036\Gmail\Gmail;
+use Skn036\Gmail\Facades\Gmail as GmailFacade;
 
 class GmailMessage
 {
@@ -14,6 +17,12 @@ class GmailMessage
      * @var \Google_Service_Gmail_Message
      */
     protected $message;
+
+    /**
+     * Gmail Client
+     * @var Gmail|GmailFacade
+     */
+    private $client;
 
     /**
      * Summary of rawHeaders
@@ -130,24 +139,36 @@ class GmailMessage
     public $historyId;
 
     /**
+     * References headers
+     */
+    public $references;
+
+    /**
      * Summary of __construct
      * @param \Google_Service_Gmail_Message $message
+     * @param Gmail|GmailFacade $client
+     *
+     * @throws \Exception
      */
-    public function __construct($message)
+    public function __construct($message, Gmail|GmailFacade $client)
     {
-        if ($message instanceof \Google_Service_Gmail_Message) {
-            $this->message = $message;
-            $payload = $this->message->getPayload();
-            $this->rawHeaders = $this->getPartHeaders($payload);
-
-            $this->allPartsIncludingNested = $this->getFlatPartsCollection(
-                collect($payload && $payload->getParts() ? $payload->getParts() : []),
-                collect([])
-            );
-            $this->setParams();
-        } elseif ($message instanceof \Exception) {
+        if ($message instanceof \Exception) {
             throw $message;
         }
+        if (!($message instanceof \Google_Service_Gmail_Message)) {
+            throw new \Exception('message is not instance of \Google_Service_Gmail_Message');
+        }
+
+        $this->client = $client;
+        $this->message = $message;
+        $payload = $this->message->getPayload();
+        $this->rawHeaders = $this->getPartHeaders($payload);
+
+        $this->allPartsIncludingNested = $this->getFlatPartsCollection(
+            collect($payload && $payload->getParts() ? $payload->getParts() : []),
+            collect([])
+        );
+        $this->setParams();
     }
 
     /**
@@ -170,7 +191,8 @@ class GmailMessage
             ->setBody()
             ->setSnippet()
             ->setAttachments()
-            ->setHistoryId();
+            ->setHistoryId()
+            ->setReferences();
 
         return $this;
     }
@@ -202,6 +224,32 @@ class GmailMessage
     public function getBcc()
     {
         return $this->bcc;
+    }
+
+    /**
+     * Creates a replyable instance of the message setting proper headers, subject and thread id.
+     * This will not set the "to", "cc", "body" of the message.
+     * This is because, most of the time replied message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Message\Sendable\Email.
+     *
+     * @return Email
+     */
+    public function createReply()
+    {
+        return (new Email($this->client, $this))->createReply();
+    }
+
+    /**
+     * Creates a forwarding instance of the message setting proper headers, subject and thread id.
+     * This will not set the "attachments", "to", "cc", "body" of the message.
+     * This is because, most of the time forwarded message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Message\Sendable\Email.
+     *
+     * @return Email
+     */
+    public function createForward()
+    {
+        return (new Email($this->client, $this))->createForward();
     }
 
     /**
@@ -351,7 +399,7 @@ class GmailMessage
      */
     protected function setAttachments()
     {
-        $this->attachments = $this->parseAttachments($this->allPartsIncludingNested);
+        $this->attachments = $this->parseAttachments($this->allPartsIncludingNested, $this->id);
         return $this;
     }
 
@@ -362,6 +410,16 @@ class GmailMessage
     protected function setHistoryId()
     {
         $this->historyId = $this->message->getHistoryId();
+        return $this;
+    }
+
+    /**
+     * Sets the references from header in the message
+     * @return static
+     */
+    protected function setReferences()
+    {
+        $this->references = $this->getHeader('references');
         return $this;
     }
 
