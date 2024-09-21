@@ -3,6 +3,7 @@ namespace Skn036\Gmail\Message\Sendable;
 
 use Skn036\Gmail\Gmail;
 use Illuminate\Mail\Markdown;
+use Illuminate\Http\UploadedFile;
 use Symfony\Component\Mime\Email;
 use Illuminate\Support\Collection;
 use Illuminate\Container\Container;
@@ -87,7 +88,16 @@ class Sendable
      */
     protected $headers = [];
 
+    /**
+     * Attachments of the email
+     * @var Collection<SendableAttachment>|null
+     */
     protected $emailAttachments;
+
+    /**
+     * Embeds of the email
+     * @var Collection<SendableEmbed>|null
+     */
     protected $emailEmbeds;
 
     /**
@@ -136,10 +146,10 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function to(string|array ...$addresses)
+    public function to(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->toRecipients = $this->setRecipients($addresses, 'to');
         return $this;
@@ -152,13 +162,23 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function addTo(string|array ...$addresses)
+    public function addTo(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->toRecipients = $this->setRecipients($addresses, 'to', $this->toRecipients);
         return $this;
+    }
+
+    /**
+     * Returns the to recipients of the message
+     *
+     * @return Collection<GmailMessageRecipient>|null
+     */
+    public function getTo()
+    {
+        return $this->toRecipients;
     }
 
     /**
@@ -168,10 +188,10 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function cc(string|array ...$addresses)
+    public function cc(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->ccRecipients = $this->setRecipients($addresses, 'cc');
         return $this;
@@ -184,13 +204,23 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function addCc(string|array ...$addresses)
+    public function addCc(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->ccRecipients = $this->setRecipients($addresses, 'cc', $this->ccRecipients);
         return $this;
+    }
+
+    /**
+     * Returns the cc recipients of the message
+     *
+     * @return Collection<GmailMessageRecipient>|null
+     */
+    public function getCc()
+    {
+        return $this->ccRecipients;
     }
 
     /**
@@ -200,10 +230,10 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function bcc(string|array ...$addresses)
+    public function bcc(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->bccRecipients = $this->setRecipients($addresses, 'bcc');
         return $this;
@@ -216,13 +246,23 @@ class Sendable
      * addresses can be given as a string like 'example@example.com'
      * or as an array like ['example@example.com', 'Example Name'] or ['example@example.com']
      *
-     * @param string|array ...$addresses
+     * @param string|array|GmailMessageRecipient ...$addresses
      * @return static
      */
-    public function addBcc(string|array ...$addresses)
+    public function addBcc(string|array|GmailMessageRecipient ...$addresses)
     {
         $this->bccRecipients = $this->setRecipients($addresses, 'bcc', $this->bccRecipients);
         return $this;
+    }
+
+    /**
+     * Returns the bcc recipients of the message
+     *
+     * @return Collection<GmailMessageRecipient>|null
+     */
+    public function getBcc()
+    {
+        return $this->bccRecipients;
     }
 
     /**
@@ -238,6 +278,16 @@ class Sendable
     }
 
     /**
+     * Returns the subject of the message
+     *
+     * @return string
+     */
+    public function getSubject()
+    {
+        return $this->emailSubject;
+    }
+
+    /**
      * Sets the priority of the email
      * values: 1 for lowest, 2 for low, 3 for normal, 4 for high and 5 for highest
      *
@@ -248,6 +298,16 @@ class Sendable
     {
         $this->emailPriority = $priority;
         return $this;
+    }
+
+    /**
+     * Returns the to priority of the message
+     *
+     * @return int
+     */
+    public function getPriority()
+    {
+        return $this->emailPriority;
     }
 
     /**
@@ -301,6 +361,158 @@ class Sendable
     }
 
     /**
+     * Returns the body of the message
+     *
+     * @return string
+     */
+    public function getBody()
+    {
+        return $this->emailBody;
+    }
+
+    /**
+     * Returns the headers to be set on the message
+     *
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Returns the thread id of the replying/forwarding messages
+     *
+     * @return string|null
+     */
+    public function getThreadId()
+    {
+        return $this->threadId;
+    }
+
+    /**
+     * Attaches files to the email.
+     * Multiple calls will override the previous attachments
+     * If given as path, it must be given as the storage_path relative to filesystem config
+     *
+     * @param string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths
+     * @return static
+     */
+    public function attach(string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths)
+    {
+        $this->emailAttachments = collect([]);
+        foreach ($uploadedFileOrPaths as $uploadedFileOrPath) {
+            if ($uploadedFileOrPath instanceof SendableAttachment) {
+                $this->emailAttachments->push($uploadedFileOrPath);
+            } else {
+                $this->emailAttachments->push(new SendableAttachment($uploadedFileOrPath));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Add attachments to the email.
+     * Multiple calls will append the previous attachments
+     * If given as path, it must be given as the storage_path relative to filesystem config
+     *
+     * @param string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths
+     * @return static
+     */
+    public function addAttachment(string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths)
+    {
+        if (!$this->emailAttachments) {
+            $this->emailAttachments = collect([]);
+        }
+        foreach ($uploadedFileOrPaths as $uploadedFileOrPath) {
+            if ($uploadedFileOrPath instanceof SendableAttachment) {
+                $this->emailAttachments->push($uploadedFileOrPath);
+            } else {
+                $this->emailAttachments->push(new SendableAttachment($uploadedFileOrPath));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Returns the email attachments
+     *
+     * @return Collection<SendableAttachment>|null
+     */
+    public function getAttachments()
+    {
+        return $this->emailAttachments;
+    }
+
+    /**
+     * Embeds files to the email.
+     * Multiple calls will override the previous embeds
+     * If given as path, it must be given as the storage_path relative to filesystem config
+     * for embed to work properly, this name should be used in the body of the email
+     * <img src="cid:{name}"> or <div background="cid:{name}"> ... </div>
+     *
+     * @param array|SendableEmbed ...$embeds
+     * @return static
+     */
+    public function embed(array|SendableEmbed ...$embeds)
+    {
+        $this->emailEmbeds = collect([]);
+        foreach ($embeds as $embed) {
+            if ($embed instanceof SendableEmbed) {
+                $this->emailEmbeds->push($embed);
+            } else {
+                if (!is_array($embed) || count($embed) !== 2) {
+                    throw new \InvalidArgumentException(
+                        'Embeds must be given as an array with two elements: [path|UploadedFile, name]'
+                    );
+                }
+                $this->emailEmbeds->push(new SendableEmbed(...$embed));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Add embeds files to the email.
+     * Multiple calls will append the previous embeds
+     * If given as path, it must be given as the storage_path relative to filesystem config
+     * for embed to work properly, this name should be used in the body of the email
+     * <img src="cid:{name}"> or <div background="cid:{name}"> ... </div>
+     *
+     * @param array|SendableEmbed ...$embeds
+     * @return static
+     */
+    public function addEmbed(array|SendableEmbed ...$embeds)
+    {
+        if (!$this->emailEmbeds) {
+            $this->emailEmbeds = collect([]);
+        }
+        foreach ($embeds as $embed) {
+            if ($embed instanceof SendableEmbed) {
+                $this->emailEmbeds->push($embed);
+            } else {
+                if (!is_array($embed) || count($embed) !== 2) {
+                    throw new \InvalidArgumentException(
+                        'Embeds must be given as an array with two elements: [path|UploadedFile, name]'
+                    );
+                }
+                $this->emailEmbeds->push(new SendableEmbed(...$embed));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Returns the email embeds
+     *
+     * @return Collection<SendableEmbed>|null
+     */
+    public function getEmbeds()
+    {
+        return $this->emailEmbeds;
+    }
+
+    /**
      * Sets email of the email sender
      *
      * @return static
@@ -315,7 +527,7 @@ class Sendable
      * Sets or adds recipient for to, cc, bcc fields
      * Error will be thrown if any of the email addresses are invalid
      *
-     * @param array<string|array> $addresses
+     * @param array<string|array|GmailMessageRecipient> $addresses
      * @param string $resource
      * @param Collection<GmailMessageRecipient>|null $current
      *
@@ -366,11 +578,14 @@ class Sendable
     /**
      * Convert the given recipient to a GmailMessageRecipient instance.
      *
-     * @param string|array $address
+     * @param string|array|GmailMessageRecipient $address
      * @return GmailMessageRecipient
      */
     private function convertToMessageRecipient($address)
     {
+        if ($address instanceof GmailMessageRecipient) {
+            return $address;
+        }
         if (is_array($address)) {
             $name = count($address) > 1 ? $address[1] : null;
             return new GmailMessageRecipient($address[0], $name);
@@ -396,7 +611,9 @@ class Sendable
     protected function addMessageToSameThread()
     {
         if (empty($this->message->from->email)) {
-            throw new \Exception('To create reply thread message must be given on the constructor');
+            throw new \Exception(
+                'To create reply/forward on current thread, message must be given on the constructor'
+            );
         }
         $this->threadId = $this->message->threadId;
         $this->subject($this->message->subject);
@@ -467,6 +684,18 @@ class Sendable
             if ($value) {
                 $this->symfonyEmail->getHeaders()->addTextHeader($header, $value);
             }
+        }
+
+        if ($this->emailAttachments instanceof Collection && $this->emailAttachments->count()) {
+            $this->emailAttachments->each(
+                fn($attachment) => $this->symfonyEmail->attachFromPath($attachment->fullPath)
+            );
+        }
+
+        if ($this->emailEmbeds instanceof Collection && $this->emailEmbeds->count()) {
+            $this->emailEmbeds->each(
+                fn($embed) => $this->symfonyEmail->embedFromPath($embed->fullPath, $embed->name)
+            );
         }
 
         $rawMessage = $this->toBase64($this->symfonyEmail->toString());

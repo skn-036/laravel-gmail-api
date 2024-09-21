@@ -52,11 +52,13 @@ trait ExtractMessage
             $recipient = trim($recipient);
             preg_match_all($pattern, $recipient, $matches, PREG_SET_ORDER);
 
-            foreach ($matches as $match) {
-                $name = isset($match[1]) && !empty($match[1]) ? $match[1] : null;
-                $email = isset($match[2]) ? $match[2] : null;
+            if ($matches) {
+                foreach ($matches as $match) {
+                    $name = $match[1] ?: '';
+                    $email = $match[2] ?: '';
 
-                $results->push(new GmailMessageRecipient($email, $name));
+                    $results->push(new GmailMessageRecipient($email, $name));
+                }
             }
         }
 
