@@ -128,7 +128,7 @@ class GmailMessage
 
     /**
      * Message attachments
-     * @var Collection
+     * @var Collection<GmailMessageAttachment>
      */
     public $attachments;
 
@@ -161,40 +161,8 @@ class GmailMessage
 
         $this->client = $client;
         $this->message = $message;
-        $payload = $this->message->getPayload();
-        $this->rawHeaders = $this->getPartHeaders($payload);
 
-        $this->allPartsIncludingNested = $this->getFlatPartsCollection(
-            collect($payload && $payload->getParts() ? $payload->getParts() : []),
-            collect([])
-        );
-        $this->setParams();
-    }
-
-    /**
-     * Set all params
-     * @return static
-     */
-    protected function setParams()
-    {
-        $this->setId()
-            ->setThreadId()
-            ->setHeaderMessageId()
-            ->setReplyTo()
-            ->setFrom()
-            ->setTo()
-            ->setCc()
-            ->setBcc()
-            ->setLabels()
-            ->setSubject()
-            ->setDate()
-            ->setBody()
-            ->setSnippet()
-            ->setAttachments()
-            ->setHistoryId()
-            ->setReferences();
-
-        return $this;
+        $this->gmailMessageToParams();
     }
 
     /**
@@ -250,6 +218,172 @@ class GmailMessage
     public function createForward()
     {
         return (new Email($this->client, $this))->createForward();
+    }
+
+    /**
+     * Downloads the given attachment
+     * @param string $attachmentId
+     *
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @throws \Exception
+     */
+    public function downloadAttachment(string $attachmentId)
+    {
+        $attachment = $this->attachments->first(
+            fn($attachment) => $attachment->id === $attachmentId
+        );
+        if (!$attachment) {
+            throw new \Exception('Attachment not found');
+        }
+
+        return $attachment->download();
+    }
+
+    /**
+     * Saves all attachments on the default disc in filesystem
+     * if path is not given, it will save on the gmail.attachment_path on google config
+     *
+     * @param string $attachmentId
+     * @param string $path
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function saveAttachment(string $attachmentId, string $path = '')
+    {
+        $attachment = $this->attachments->first(
+            fn($attachment) => $attachment->id === $attachmentId
+        );
+        if (!$attachment) {
+            throw new \Exception('Attachment not found');
+        }
+
+        return $attachment->save($path);
+    }
+
+    /**
+     * Saves all attachments on the default disc in filesystem
+     * if path is not given, it will save on the gmail.attachment_path on google config
+     *
+     * @param string $path
+     * @return string
+     */
+    public function saveAllAttachments(string $path = '')
+    {
+        return $this->attachments
+            ->map(fn($attachment) => $attachment->save($path))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Modify the labels of the message
+     *
+     * @param array|string $addedLabelIds
+     * @param array|string $removedLabelIds
+     * @param array $optParams
+     *
+     * @return static
+     */
+    public function modifyLabels(
+        array|string $addedLabelIds = [],
+        array|string $removedLabelIds = [],
+        array $optParams = []
+    ) {
+        if (is_string($addedLabelIds)) {
+            $addedLabelIds = [$addedLabelIds];
+        }
+        if (is_string($removedLabelIds)) {
+            $removedLabelIds = [$removedLabelIds];
+        }
+        if (!count($addedLabelIds) && !count($removedLabelIds)) {
+            return $this;
+        }
+
+        $modify = new \Google_Service_Gmail_ModifyMessageRequest();
+        if (count($addedLabelIds) > 0) {
+            $modify->setAddLabelIds($addedLabelIds);
+        }
+        if (count($removedLabelIds) > 0) {
+            $modify->setRemoveLabelIds($removedLabelIds);
+        }
+
+        $service = $this->client->initiateService();
+        $message = $service->users_messages->modify('me', $this->id, $modify, $optParams);
+        $this->setLabels($message->getLabelIds());
+
+        return $this;
+    }
+
+    /**
+     * Add labels of the message
+     *
+     * @param array|string $labelIds
+     * @param array $optParams
+     *
+     * @return static
+     */
+    public function addLabels(array|string $labelIds = [], array $optParams = [])
+    {
+        return $this->modifyLabels($labelIds, [], $optParams);
+    }
+
+    /**
+     * Remove labels of the message
+     *
+     * @param array|string $labelIds
+     * @param array $optParams
+     *
+     * @return static
+     */
+    public function removeLabels(array|string $labelIds = [], array $optParams = [])
+    {
+        return $this->modifyLabels([], $labelIds, $optParams);
+    }
+
+    /**
+     * Move the message to trash
+     *
+     * @param array $optParams
+     *
+     * @return static
+     */
+    public function trash($optParams = [])
+    {
+        $service = $this->client->initiateService();
+        $message = $service->users_messages->trash('me', $this->id, $optParams);
+        $this->setLabels($message->getLabelIds());
+        return $this;
+    }
+
+    /**
+     * Move the message from trash
+     *
+     * @param array $optParams
+     *
+     * @return static
+     */
+    public function untrash($optParams = [])
+    {
+        $service = $this->client->initiateService();
+        $message = $service->users_messages->untrash('me', $this->id, $optParams);
+        $this->setLabels($message->getLabelIds());
+        return $this;
+    }
+
+    /**
+     * Permanently deletes the message
+     * Full mailbox permission scopes needed to execute this action.
+     * For more info: https://developers.google.com/gmail/api/auth/scopes
+     *
+     * @param array $optParams
+     *
+     * @return void
+     */
+    public function delete($optParams = [])
+    {
+        $service = $this->client->initiateService();
+        $service->users_messages->delete('me', $this->id, $optParams);
     }
 
     /**
@@ -340,11 +474,16 @@ class GmailMessage
 
     /**
      * Sets the labels of the message
+     *
+     * @param array<string> $labelIds
      * @return static
      */
-    protected function setLabels()
+    protected function setLabels($labelIds = [])
     {
-        $this->labels = collect(array_values($this->message->getLabelIds() ?: []));
+        if (empty($labelIds)) {
+            $labelIds = $this->message->getLabelIds();
+        }
+        $this->labels = collect(array_values($labelIds ?: []));
         return $this;
     }
 
@@ -399,7 +538,11 @@ class GmailMessage
      */
     protected function setAttachments()
     {
-        $this->attachments = $this->parseAttachments($this->allPartsIncludingNested, $this->id);
+        $this->attachments = $this->parseAttachments(
+            $this->allPartsIncludingNested,
+            $this->id,
+            $this->client
+        );
         return $this;
     }
 
@@ -425,11 +568,60 @@ class GmailMessage
 
     /**
      * get header by name
+     *
      * @param string $name
      * @return string|null
      */
-    protected function getHeader($name)
+    public function getHeader($name)
     {
         return $this->getHeaderValue($name, $this->rawHeaders);
+    }
+
+    /**
+     * Extracts the message from gmail and sets the params
+     * @return static
+     */
+    private function gmailMessageToParams()
+    {
+        if (!$this->message) {
+            return $this;
+        }
+
+        $payload = $this->message->getPayload();
+        $this->rawHeaders = $this->getPartHeaders($payload);
+
+        $this->allPartsIncludingNested = $this->getFlatPartsCollection(
+            collect($payload && $payload->getParts() ? $payload->getParts() : []),
+            collect([])
+        );
+        $this->setParams();
+
+        return $this;
+    }
+
+    /**
+     * Set all params
+     * @return static
+     */
+    private function setParams()
+    {
+        $this->setId()
+            ->setThreadId()
+            ->setHeaderMessageId()
+            ->setReplyTo()
+            ->setFrom()
+            ->setTo()
+            ->setCc()
+            ->setBcc()
+            ->setLabels()
+            ->setSubject()
+            ->setDate()
+            ->setBody()
+            ->setSnippet()
+            ->setAttachments()
+            ->setHistoryId()
+            ->setReferences();
+
+        return $this;
     }
 }

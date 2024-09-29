@@ -6,6 +6,13 @@ use Illuminate\Http\UploadedFile;
 class SendableAttachment
 {
     /**
+     * name of the file
+     *
+     * @var string
+     */
+    public $name = '';
+
+    /**
      * Full path of the given file
      * @var string
      */
@@ -33,9 +40,11 @@ class SendableAttachment
         if ($fileOrPath instanceof UploadedFile) {
             $this->file = $fileOrPath;
             $this->fullPath = $fileOrPath->getPathname();
+            $this->name = $fileOrPath->getClientOriginalName();
         } else {
             $this->storagePath = $fileOrPath;
             $this->fullPath = storage_path($fileOrPath);
+            $this->name = basename($fileOrPath);
         }
     }
 }

@@ -3,7 +3,7 @@ namespace Skn036\Gmail\Message\Sendable;
 
 use Illuminate\Http\UploadedFile;
 
-class SendableEmbed extends SendableAttachment
+class SendableEmbed
 {
     /**
      * name of the embed
@@ -12,7 +12,25 @@ class SendableEmbed extends SendableAttachment
      *
      * @var string
      */
-    public $name;
+    public $name = '';
+
+    /**
+     * Full path of the given file
+     * @var string
+     */
+    public $fullPath;
+
+    /**
+     * storage path of the file if given
+     * @var string|null
+     */
+    public $storagePath;
+
+    /**
+     * uploaded file if given
+     * @var UploadedFile|null
+     */
+    public $file;
 
     /**
      * Summary of __construct
@@ -25,7 +43,13 @@ class SendableEmbed extends SendableAttachment
      */
     public function __construct(string|UploadedFile $fileOrPath, string $name)
     {
-        parent::__construct($fileOrPath);
+        if ($fileOrPath instanceof UploadedFile) {
+            $this->file = $fileOrPath;
+            $this->fullPath = $fileOrPath->getPathname();
+        } else {
+            $this->storagePath = $fileOrPath;
+            $this->fullPath = storage_path($fileOrPath);
+        }
         $this->name = $name;
     }
 }

@@ -21,9 +21,9 @@ class GmailMessageRecipient
      * GmailMessageRecipient constructor.
      *
      * @param string $email
-     * @param string|null $name
+     * @param string $name
      */
-    public function __construct(string $email, string|null $name = null)
+    public function __construct(string $email, string $name = '')
     {
         $this->email = $email;
         if ($name) {

@@ -716,7 +716,7 @@ class GmailFilter
     }
 
     /**
-     * Returns filter params as expected by gmail list messages/threads request
+     * Returns optional params array as expected by gmail list messages/threads request
      *
      * @return array
      */
