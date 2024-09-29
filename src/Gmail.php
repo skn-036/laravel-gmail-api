@@ -18,8 +18,11 @@ class Gmail extends GoogleClient
      *
      * @return void
      */
-    public function __construct($userId = null, $usingAccount = null, $config = null)
-    {
+    public function __construct(
+        string|int|null $userId = null,
+        string|null $usingAccount = null,
+        array|null $config = null
+    ) {
         parent::__construct($userId, $usingAccount, $config);
     }
 

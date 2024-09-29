@@ -4,6 +4,8 @@ namespace Skn036\Gmail\Message\Traits;
 use Illuminate\Support\Collection;
 use Skn036\Gmail\Message\GmailMessageRecipient;
 use Skn036\Gmail\Message\GmailMessageAttachment;
+use Skn036\Gmail\Gmail;
+use Skn036\Gmail\Facades\Gmail as GmailFacade;
 
 trait ExtractMessage
 {
@@ -69,14 +71,16 @@ trait ExtractMessage
      * parse attachments from a message part
      * @param Collection<\Google_Service_Gmail_MessagePart> $parts
      * @param string $messageId
+     * @param Gmail|GmailFacade|null $client
      *
      * @return Collection<GmailMessageAttachment>
      */
-    protected function parseAttachments($parts, $messageId)
+    protected function parseAttachments($parts, $messageId, $client)
     {
         return $parts
             ->filter(fn($part) => $part->getFilename() && $part->getBody()->getAttachmentId())
-            ->map(fn($part) => new GmailMessageAttachment($part, $messageId));
+            ->map(fn($part) => new GmailMessageAttachment($part, $messageId, $client))
+            ->values();
     }
 
     /**

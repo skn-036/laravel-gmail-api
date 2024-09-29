@@ -393,7 +393,7 @@ class Sendable
     /**
      * Attaches files to the email.
      * Multiple calls will override the previous attachments
-     * If given as path, it must be given as the storage_path relative to filesystem config
+     * If given as path, it must be given with respect to storage folder
      *
      * @param string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths
      * @return static
@@ -414,7 +414,7 @@ class Sendable
     /**
      * Add attachments to the email.
      * Multiple calls will append the previous attachments
-     * If given as path, it must be given as the storage_path relative to filesystem config
+     * If given as path, it must be given with respect to storage folder
      *
      * @param string|UploadedFile|SendableAttachment ...$uploadedFileOrPaths
      * @return static
@@ -447,7 +447,7 @@ class Sendable
     /**
      * Embeds files to the email.
      * Multiple calls will override the previous embeds
-     * If given as path, it must be given as the storage_path relative to filesystem config
+     * If given as path, it must be given with respect to storage folder
      * for embed to work properly, this name should be used in the body of the email
      * <img src="cid:{name}"> or <div background="cid:{name}"> ... </div>
      *
@@ -475,7 +475,7 @@ class Sendable
     /**
      * Add embeds files to the email.
      * Multiple calls will append the previous embeds
-     * If given as path, it must be given as the storage_path relative to filesystem config
+     * If given as path, it must be given with respect to storage folder
      * for embed to work properly, this name should be used in the body of the email
      * <img src="cid:{name}"> or <div background="cid:{name}"> ... </div>
      *
@@ -688,7 +688,10 @@ class Sendable
 
         if ($this->emailAttachments instanceof Collection && $this->emailAttachments->count()) {
             $this->emailAttachments->each(
-                fn($attachment) => $this->symfonyEmail->attachFromPath($attachment->fullPath)
+                fn($attachment) => $this->symfonyEmail->attachFromPath(
+                    $attachment->fullPath,
+                    $attachment->name
+                )
             );
         }
 
