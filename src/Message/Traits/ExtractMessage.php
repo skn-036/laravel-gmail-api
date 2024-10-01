@@ -12,7 +12,7 @@ trait ExtractMessage
     /**
      * get all headers of a message part
      *
-     * @param \Google_Service_Gmail_MessagePart|null $part
+     * @param \Google_Service_Gmail_MessagePart|\Google\Service\Gmail\MessagePart|null $part
      * @return Collection<\Google_Service_Gmail_MessagePartHeader>
      */
     protected function getPartHeaders($part)

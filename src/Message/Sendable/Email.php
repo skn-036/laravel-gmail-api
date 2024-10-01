@@ -12,12 +12,12 @@ class Email extends Sendable
      * Summary of __construct
      *
      * @param Gmail|GmailFacade $client
-     * @param GmailMessage|null $message
+     * @param GmailMessage|null $replyToMessage
      *
      */
-    public function __construct(Gmail|GmailFacade $client, GmailMessage|null $message = null)
+    public function __construct(Gmail|GmailFacade $client, GmailMessage|null $replyToMessage = null)
     {
-        parent::__construct($client, $message);
+        parent::__construct($client, $replyToMessage);
     }
 
     /**

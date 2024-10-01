@@ -19,7 +19,7 @@ class Sendable
      * Gmail message instance
      * @var GmailMessage|null
      */
-    protected $message;
+    protected $replyToMessage;
 
     /**
      * Gmail client
@@ -109,16 +109,16 @@ class Sendable
     /**
      * Summary of __construct
      * @param Gmail|GmailFacade $client
-     * @param GmailMessage|null $message
+     * @param GmailMessage|null $replyToMessage
      *
      * @throws TokenNotValidException
      */
-    public function __construct(Gmail|GmailFacade $client, GmailMessage|null $message = null)
+    public function __construct(Gmail|GmailFacade $client, GmailMessage|null $replyToMessage = null)
     {
         $client->throwExceptionIfNotAuthenticated();
 
         $this->client = $client;
-        $this->message = $message;
+        $this->replyToMessage = $replyToMessage;
 
         $this->setMyEmail()->setMyName();
     }
@@ -381,6 +381,23 @@ class Sendable
     }
 
     /**
+     * Sets headers to the message
+     *
+     * @param string $header
+     * @param string $value
+     *
+     * @return static
+     */
+    public function setHeader($header, $value)
+    {
+        if (!is_array($this->headers)) {
+            $this->headers = [];
+        }
+        $this->headers[$header] = $value;
+        return $this;
+    }
+
+    /**
      * Returns the thread id of the replying/forwarding messages
      *
      * @return string|null
@@ -610,16 +627,16 @@ class Sendable
      */
     protected function addMessageToSameThread()
     {
-        if (empty($this->message->from->email)) {
+        if (empty($this->replyToMessage->from->email)) {
             throw new \Exception(
                 'To create reply/forward on current thread, message must be given on the constructor'
             );
         }
-        $this->threadId = $this->message->threadId;
-        $this->subject($this->message->subject);
+        $this->threadId = $this->replyToMessage->threadId;
+        $this->subject($this->replyToMessage->subject);
         $this->headers = [
-            'In-Reply-To' => $this->message->headerMessageId,
-            'References' => $this->message->references,
+            'In-Reply-To' => $this->replyToMessage->headerMessageId,
+            'References' => $this->replyToMessage->references,
         ];
 
         return $this;
@@ -659,9 +676,11 @@ class Sendable
     /**
      * Converts the message to Gmail payload
      *
-     * @return \Google_Service_Gmail_Message
+     * @param \Google_Service_Gmail_Message|\Google\Service\Gmail\Message|null $message
+     *
+     * @return \Google_Service_Gmail_Message|\Google\Service\Gmail\Message
      */
-    protected function setGmailMessageBody()
+    protected function setGmailMessageBody($message = null)
     {
         $this->symfonyEmail = (new Email())->from(new Address($this->fromEmail, $this->fromName));
         foreach (
@@ -703,7 +722,9 @@ class Sendable
 
         $rawMessage = $this->toBase64($this->symfonyEmail->toString());
 
-        $message = new \Google_Service_Gmail_Message();
+        if (!$message) {
+            $message = new \Google_Service_Gmail_Message();
+        }
         if ($this->threadId) {
             $message->setThreadId($this->threadId);
         }
