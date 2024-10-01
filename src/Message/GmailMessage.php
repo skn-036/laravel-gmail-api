@@ -3,6 +3,7 @@ namespace Skn036\Gmail\Message;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Skn036\Gmail\Draft\Sendable\Draft;
 use Skn036\Gmail\Message\Sendable\Email;
 use Skn036\Gmail\Message\Traits\ExtractMessage;
 use Skn036\Gmail\Gmail;
@@ -14,7 +15,7 @@ class GmailMessage
 
     /**
      * Message from gmail
-     * @var \Google_Service_Gmail_Message
+     * @var \Google_Service_Gmail_Message|\Google\Service\Gmail\Message
      */
     protected $message;
 
@@ -145,7 +146,7 @@ class GmailMessage
 
     /**
      * Summary of __construct
-     * @param \Google_Service_Gmail_Message $message
+     * @param \Google_Service_Gmail_Message|\Google\Service\Gmail\Message $message
      * @param Gmail|GmailFacade $client
      *
      * @throws \Exception
@@ -221,6 +222,19 @@ class GmailMessage
     }
 
     /**
+     * Creates a replying/forwarding draft instance of the message setting proper headers, subject and thread id.
+     * This will not set the "attachments", "to", "cc", "body" of the message.
+     * This is because, most of the time forwarded message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Draft\Sendable\Draft.
+     *
+     * @return Draft
+     */
+    public function createDraft()
+    {
+        return (new Draft($this->client, null, $this))->withReplyOrForward();
+    }
+
+    /**
      * Downloads the given attachment
      * @param string $attachmentId
      *
@@ -266,7 +280,7 @@ class GmailMessage
      * if path is not given, it will save on the gmail.attachment_path on google config
      *
      * @param string $path
-     * @return string
+     * @return string[]
      */
     public function saveAllAttachments(string $path = '')
     {
@@ -384,6 +398,15 @@ class GmailMessage
     {
         $service = $this->client->initiateService();
         $service->users_messages->delete('me', $this->id, $optParams);
+    }
+
+    /**
+     * Get the raw message
+     * @return \Google_Service_Gmail_Message|\Google\Service\Gmail\Message
+     */
+    public function getRawMessage()
+    {
+        return $this->message;
     }
 
     /**

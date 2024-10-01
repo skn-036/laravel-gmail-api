@@ -2,6 +2,7 @@
 
 namespace Skn036\Gmail;
 
+use Skn036\Gmail\Draft\GmailDraftResponse;
 use Skn036\Google\GoogleClient;
 use Skn036\Gmail\Message\GmailMessageResponse;
 use Skn036\Gmail\Exceptions\TokenNotValidException;
@@ -50,7 +51,7 @@ class Gmail extends GoogleClient
     }
 
     /**
-     * To fetching gmail messages
+     * Gmail message resource
      *
      * @return GmailMessageResponse
      * @throws TokenNotValidException
@@ -58,6 +59,17 @@ class Gmail extends GoogleClient
     public function messages()
     {
         return new GmailMessageResponse($this);
+    }
+
+    /**
+     * Gmail draft resource
+     *
+     * @return GmailDraftResponse
+     * @throws TokenNotValidException
+     */
+    public function drafts()
+    {
+        return new GmailDraftResponse($this);
     }
 
     /**

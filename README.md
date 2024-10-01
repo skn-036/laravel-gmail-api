@@ -79,14 +79,19 @@ $messageResponse = Gmail::messages()->maxResults(20)->list();
 
 List response returns a instance of `Skn036\Gmail\Message\GmailMessagesList` which contains the list of messages, whether there's a next page, current page token, next page token and total messages. You can fetch the messages of the next page by calling `next` method or by passing the next page token to the `list` method. For fetching response of the previous page again, you should store the current page tokens and revert back to it if necessary.
 
-```php
-$messageResponse->messages; // Collection of Skn036\Gmail\Message\GmailMessage;
-$messageResponse->hasNextPage; // boolean
-$messageResponse->nextPageToken; // string|null
-$messageResponse->currentPageToken; // string|null
-$messageResponse->total; // int|string
+`$messageResponse->messages` is a collection of `Skn036\Gmail\Message\GmailMessage`. Each message contains the necessary information about the message like id, thread id, from, to, cc, bcc, labels, subject, date, body, snippet, history id, references etc.
 
-// fetch the next page
+`$messageResponse->hasNextPage` is a boolean value which tells whether there's a next page or not.
+
+`$messageResponse->nextPageToken` is a string value which contains the token to fetch the next page.
+
+`$messageResponse->currentPageToken` is a string value which contains the token of the current page.
+
+`$messageResponse->total` is a integer value which contains the total number of messages.
+
+To fetch the messages of the next page, you can use `next` method or by passing the next page token to the `list` method.
+
+```php
 $nexPageResponse = $messageResponse->next();
 // or
 $nextPageResponse = $gmail->messages()->list($messageResponse->nextPageToken);
@@ -429,7 +434,7 @@ $rawFile = $attachment->decodeBase64($attachment->data);
 
 ### Replying Or Forwarding Message
 
-Gmail has some criteria that should met in order to messages being on the same thread. To create a reply or forward message, you can use `createReply` and `createForward` methods. Both methods will create a instance of `Skn036\Gmail\Message\Sendable\Email` setting up necessary headers and subject to meet criteria from gmail. Then rest of the steps are same as sending a email mentioned above.
+Gmail has some criteria that should met in order to [messages being on the same thread](https://developers.google.com/gmail/api/guides/threads). To create a reply or forward message, you can use `createReply` and `createForward` methods. Both methods will create a instance of `Skn036\Gmail\Message\Sendable\Email` setting up necessary headers and subject to meet criteria from gmail. Then rest of the steps are same as sending a email mentioned above.
 
 ```php
 // creating a forward email
@@ -453,9 +458,35 @@ $repliedMessage = $email
     ->send();
 ```
 
-**NOTE:** Creating reply or forward will only set the necessary headers and subject to meet the criteria from gmail. It will not set the recipients, body or attachments. You should set them manually. This is because, most likely, these values are updated on the frontend before sending the email and implementation of these will vary from project to project.
+### Creating Draft On The Message
 
-### Change the message labels
+Creating draft on the message is similar to creating reply or forward. You can use `createDraft` method to create a draft on the message. It will create a instance of `Skn036\Gmail\Draft\Sendable\Draft` setting up necessary headers and subject to meet criteria from gmail. Then rest of the steps are same as sending a email mentioned above.
+
+```php
+// creating a reply/forward draft instance
+$sendableDraft = $message->createDraft();
+
+$draftBody =
+    "Hi! This is a draft on the message. It is not necessarily to send immediately. \n\n" .
+    'On ' .
+    $message->date->format('l, F j, Y \a\t g:i A') .
+    ', ' .
+    "$message->from->name < $message->from->email >" .
+    " wrote: \n" .
+    $message->body;
+
+$draft = $sendableDraft
+    ->to($message->from)
+    ->cc(...$message->cc->values()->all())
+    ->body($draftBody)
+    ->attach(...$attachments);
+
+$draft = $draft->save(); // this will create a draft on the gmail
+```
+
+**NOTE:** Creating reply or forward will only set the necessary headers and subject to meet the criteria from gmail [for being in same thread](https://developers.google.com/gmail/api/guides/threads). It will not set the recipients, body or attachments. You should set them manually. This is because, most likely, these values will be updated on the frontend by user input before sending the email and implementation of these generally vary from project to project.
+
+### Changing the message labels
 
 To add or remove labels from the message, you can use `addLabel` and `removeLabel` methods. It expects a label id or array of label ids as the first argument.
 
@@ -519,3 +550,122 @@ To delete multiple messages at once, you can use `batchDelete` method. **NOTE:**
 ```php
 $messageInstance->batchDelete($messages);
 ```
+
+## Gmail Drafts
+
+Drafts are the message instances in gmail which are not sent yet. Typically they have a `DRAFT` label. To read the list of drafts from gmail.
+
+```php
+use Skn036\Gmail\Facades\Gmail;
+
+$draftResponse = Gmail::drafts()->maxResults(20)->list();
+```
+
+List response returns a instance of `Skn036\Gmail\Draft\GmailDraftsList` which contains the list of drafts and other properties same as messages list. You can fetch the drafts of the next page by calling `next` method or by passing the next page token to the `list` method. For fetching response of the previous page again, you should store the current page tokens and revert back to it if necessary.
+
+`$draftResponse->drafts` is a collection of `Skn036\Gmail\Draft\GmailDraft`. Each draft contains id and underlying message instance.
+
+`$draftResponse->hasNextPage` is a boolean value which tells whether there's a next page or not.
+
+`$draftResponse->nextPageToken` is a string value which contains the token to fetch the next page.
+
+`$draftResponse->currentPageToken` is a string value which contains the token of the current page.
+
+To fetch the drafts of the next page, you can use `next` method or by passing the next page token to the `list` method.
+
+```php
+$nexPageResponse = $draftResponse->next();
+// or
+$nextPageResponse = $gmail->drafts()->list($draftResponse->nextPageToken);
+```
+
+### Filtering Drafts
+
+Api for filtering drafts is [same as messages](#filtering-messages). You can use all the filters mentioned on the messages section to filter drafts.
+
+```php
+$drafts = Gmail::drafts()
+    ->includeSpamTrash()
+    ->maxResults(20)
+    ->from(['foo@bar.com', 'john@doe.com'])
+    ->in(['DRAFT', 'SPAM'])
+    ->list()->drafts;
+```
+
+### Getting a Single Draft
+
+To get a single draft, you can use the `get` method. It expects a draft id as the first argument. It will return a instance of `\Skn036\Gmail\Draft\GmailDraft`
+
+```php
+$draft = Gmail::drafts()->get($draftId);
+```
+
+### Creating, Updating And Sending Drafts
+
+To create a draft you can call `create` method. It will return a instance of `\Skn036\Gmail\Draft\Sendable\Draft`.
+
+```php
+$sendableDraft = Gmail::drafts()->create();
+```
+
+To edit a already saved draft, you can call `edit` method on draft instance. It will return a instance of `\Skn036\Gmail\Draft\Sendable\Draft`.
+
+```php
+// editing from the \Skn036\Gmail\Draft\GmailDraft instance
+$draft = Gmail::drafts()->get($draftId);
+$sendableDraft = $gmailDraft->edit();
+
+// or edit the instance by passing the draft id
+$sendableDraft = Gmail::drafts()->edit($draftOrDraftId);
+```
+
+Now you can edit the properties of the draft [like you do on the email](#sending-emails). Once you are done, you can call `save` method. It will save the draft on the gmail and return a instance of `\Skn036\Gmail\Draft\GmailDraft`. Or If you want to send the draft after editing, you can call `send` method. It will send the draft as email and return a instance of `\Skn036\Gmail\Message\GmailMessage`.
+
+```php
+$draft = $sendableDraft
+    ->to('foo@bar.com', ['john@doe.com', 'John Doe'])
+    ->cc('test@gmail.com')
+    ->subject('First draft')
+    ->body('Hello World!!!')
+    ->attach(...$request->file('attachments'));
+
+$savedDraft = $draft->save(); // saves the created or edited draft
+// or
+$sentMessage = $draft->send(); // sends the draft as email
+```
+
+**NOTE:** When you are editing the draft, you need to pass all the properties every time you edit, because gmail will replace the previous properties with the new one. So if you want to keep the previous properties, you should get the message from the draft instance and pass them again.
+
+If you wish to send a already saved draft without further need of editing, you can use `send` method directly on the draft instance. It will send the last saved draft as an email.
+
+```php
+$draft = Gmail::drafts()->get($draftId);
+$message = $draft->send();
+```
+
+### Deleting Drafts
+
+You may delete a draft by calling `delete` method on the draft instance or passing the id to the draft. **NOTE:** Full mailbox permission is required for this action.
+
+```php
+$draft = Gmail::drafts()->get($draftId);
+$draft->delete();
+
+// or
+Gmail::drafts()->delete($draftId);
+```
+
+### Updating Labels On Drafts
+
+Underlying message of `GmailDraft` is a instance of `GmailMessage`. So you can use the same methods mentioned on the [message section](#changing-the-message-labels) to add, remove or modify labels.
+
+```php
+$draft = Gmail::drafts()->get($draftId);
+$message = $draft->message;
+
+$message->addLabel('IMPORTANT');
+```
+
+## Managing Gmail Threads
+
+Threads are the collection of messages grouped together which are on same conversation.
