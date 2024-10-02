@@ -97,6 +97,15 @@ class GmailDraft
     }
 
     /**
+     * Returns the raw draft
+     * @return \Google_Service_Gmail_Draft|\Google\Service\Gmail\Draft
+     */
+    public function getRawDraft()
+    {
+        return $this->draft;
+    }
+
+    /**
      * Sets the id of the draft
      * @return static
      */

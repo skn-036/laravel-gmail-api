@@ -24,7 +24,7 @@ class GmailDraftResponse extends GmailFilter
     /**
      * Create a new Gmail draft response instance.
      *
-     * @param Gmail $client
+     * @param Gmail|GmailFacade $client
      *
      * @throws TokenNotValidException
      */
