@@ -10,13 +10,13 @@ You can install this package via composer.
 composer require skn036/laravel-gmail-api
 ```
 
-If you are using any google service from skn036 for the first time, please run the following command to publish the config file. It will create a config file google.php in your config directory.
+If you are using any google package from `skn036` for the first time, please run the following command to publish the config file. It will create a config file google.php in your config directory.
 
 ```bash
 php artisan vendor:publish --provider="Skn036\Google\GoogleClientServiceProvider"
 ```
 
-If this config file is already published, no need to run above command. Just add the gmail related scopes.
+If this config file is already published typically though any other google package from `skn036`, no need to run above command. Just add the gmail related scopes.
 
 ### Adding gmail scope:
 
@@ -550,24 +550,24 @@ $rawTo = $message->getHeader('to');
 If you want to add or remove labels of multiple messages at once you use `batchAddLabels` and `batchRemoveLabels` methods. These methods expects a array or Collection of `message ids` or `Skn036\Gmail\Message\GmailMessage` as the first argument and label id or array of label ids on the second argument.
 
 ```php
-$messageInstance = Gmail::messages();
-$messages = $messageInstance->list()->messages;
+$messageResource = Gmail::messages();
+$messages = $messageResource->list()->messages;
 
 // add labels
-$messageInstance->batchAddLabels($messages, ['IMPORTANT', 'UNREAD']);
+$messageResource->batchAddLabels($messages, ['IMPORTANT', 'UNREAD']);
 
 // remove labels
 $messageIds = $messages->pluck('id');
-$messageInstance->batchRemoveLabels($messageIds, 'SPAM');
+$messageResource->batchRemoveLabels($messageIds, 'SPAM');
 
 // adding and removing labels on a single operation
-$messageInstance->batchModifyLabels($messages, ['IMPORTANT', 'UNREAD'], 'SPAM');
+$messageResource->batchModifyLabels($messages, ['IMPORTANT', 'UNREAD'], 'SPAM');
 ```
 
 To delete multiple messages at once, you can use `batchDelete` method. **NOTE:** Once the message is deleted, it can't be recovered. `https://mail.google.com/` scope is required to delete the message permanently.
 
 ```php
-$messageInstance->batchDelete($messages);
+$messageResource->batchDelete($messages);
 ```
 
 ## Gmail Drafts
