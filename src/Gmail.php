@@ -2,8 +2,12 @@
 
 namespace Skn036\Gmail;
 
-use Skn036\Gmail\Draft\GmailDraftResponse;
 use Skn036\Google\GoogleClient;
+use Skn036\Gmail\Watch\GmailWatchRequest;
+use Skn036\Gmail\Draft\GmailDraftResponse;
+use Skn036\Gmail\Label\GmailLabelResponse;
+use Skn036\Gmail\Thread\GmailThreadResponse;
+use Skn036\Gmail\History\GmailHistoryResponse;
 use Skn036\Gmail\Message\GmailMessageResponse;
 use Skn036\Gmail\Exceptions\TokenNotValidException;
 
@@ -62,7 +66,7 @@ class Gmail extends GoogleClient
     }
 
     /**
-     * Gmail draft resource
+     * Gmail drafts resource
      *
      * @return GmailDraftResponse
      * @throws TokenNotValidException
@@ -70,6 +74,50 @@ class Gmail extends GoogleClient
     public function drafts()
     {
         return new GmailDraftResponse($this);
+    }
+
+    /**
+     * Gmail threads resource
+     *
+     * @return GmailThreadResponse
+     * @throws TokenNotValidException
+     */
+    public function threads()
+    {
+        return new GmailThreadResponse($this);
+    }
+
+    /**
+     * Gmail labels resource
+     *
+     * @return GmailLabelResponse
+     * @throws TokenNotValidException
+     */
+    public function labels()
+    {
+        return new GmailLabelResponse($this);
+    }
+
+    /**
+     * Gmail histories resource
+     *
+     * @return GmailHistoryResponse
+     * @throws TokenNotValidException
+     */
+    public function histories()
+    {
+        return new GmailHistoryResponse($this);
+    }
+
+    /**
+     * Gmail watch resource
+     *
+     * @return GmailWatchRequest
+     * @throws TokenNotValidException
+     */
+    public function watch()
+    {
+        return new GmailWatchRequest($this);
     }
 
     /**

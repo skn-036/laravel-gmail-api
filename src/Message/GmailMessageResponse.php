@@ -4,6 +4,7 @@ namespace Skn036\Gmail\Message;
 use Skn036\Gmail\Gmail;
 use Illuminate\Support\Collection;
 use Skn036\Gmail\Filters\GmailFilter;
+use Skn036\Gmail\Draft\Sendable\Draft;
 use Skn036\Gmail\Message\Sendable\Email;
 use Skn036\Gmail\Facades\Gmail as GmailFacade;
 use Skn036\Gmail\Exceptions\TokenNotValidException;
@@ -25,7 +26,7 @@ class GmailMessageResponse extends GmailFilter
     /**
      * Create a new GmailMessage instance.
      *
-     * @param Gmail $client
+     * @param Gmail|GmailFacade $client
      *
      * @throws TokenNotValidException
      */
@@ -123,6 +124,23 @@ class GmailMessageResponse extends GmailFilter
     {
         $message = $this->resolveMessageFromInstanceOrId($messageOrMessageId);
         return $message->createForward();
+    }
+
+    /**
+     * Creates a replying/forwarding draft instance of the message setting proper headers, subject and thread id.
+     * This will not set the "attachments", "to", "cc", "body" of the message.
+     * This is because, most of the time forwarded message will be edited on the user interface before sending.
+     * So it should be more appropriate to set these values by the public api provided on \Skn036\Gmail\Draft\Sendable\Draft.
+     *
+     * @param GmailMessage|string $messageOrMessageId
+     *
+     * @return Draft
+     * @throws \Google\Service\Exception
+     */
+    public function createDraft(GmailMessage|string $messageOrMessageId)
+    {
+        $message = $this->resolveMessageFromInstanceOrId($messageOrMessageId);
+        return $message->createDraft();
     }
 
     /**
