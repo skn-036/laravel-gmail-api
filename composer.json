@@ -18,7 +18,7 @@
     ],
     "require": {
         "php": "^8.2||^8.3",
-        "illuminate/contracts": "^10.0||^11.0",
+        "illuminate/contracts": "^10||^11",
         "skn036/laravel-google-client": "^1",
         "symfony/mailer": "^6||^7"
     },
@@ -35,8 +35,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Skn036\\Gmail\\": "src/",
-            "Skn036\\Gmail\\Database\\Factories\\": "database/factories/"
+            "Skn036\\Gmail\\": "src/"
         }
     },
     "autoload-dev": {
