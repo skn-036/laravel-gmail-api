@@ -1,11 +1,13 @@
 {
     "name": "skn036/laravel-gmail-api",
-    "version": "1.0.10",
-    "description": "Wrapper around gmail api for laravel.",
+    "version": "1.1.0",
+    "description": "Gmail API wrapper for Laravel",
     "keywords": [
-        "Muhammad Sajedul Karim",
         "laravel",
-        "laravel-gmail-api"
+        "google",
+        "oauth",
+        "client",
+        "api"
     ],
     "homepage": "https://github.com/skn036/laravel-gmail-api",
     "license": "MIT",
@@ -14,24 +16,30 @@
             "name": "Muhammad Sajedul Karim",
             "email": "noman0703036@gmail.com",
             "role": "Developer"
+        },
+        {
+            "name": "Alex Stewart",
+            "email": "iamalexstewart@gmail.com",
+            "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.2||^8.3",
-        "illuminate/contracts": "^10||^11",
-        "skn036/laravel-google-client": "^1",
+        "php": "^8.2||^8.3||^8.4",
+        "illuminate/contracts": "^10||^11||^12.1.1",
+        "skn036/laravel-google-client": "^1.1",
         "symfony/mailer": "^6||^7"
     },
     "require-dev": {
-        "nunomaduro/collision": "^8.1.1||^7.10.0",
-        "larastan/larastan": "^2.9",
-        "orchestra/testbench": "^9.0.0||^8.22.0",
-        "pestphp/pest": "^2.34",
-        "pestphp/pest-plugin-arch": "^2.7",
-        "pestphp/pest-plugin-laravel": "^2.3",
+        "nunomaduro/collision": "^7.10.0||^8.1.1",
+        "larastan/larastan": "^2.9||^3.0",
+        "orchestra/testbench": "^8.22.0||^9.0.0||^10.0.0",
+        "pestphp/pest": "^2.34||^3.0",
+        "pestphp/pest-plugin-arch": "^2.7||^3.0",
+        "pestphp/pest-plugin-laravel": "^2.3||^3.0",
         "phpstan/extension-installer": "^1.3",
-        "phpstan/phpstan-deprecation-rules": "^1.1",
-        "phpstan/phpstan-phpunit": "^1.3"
+        "phpstan/phpstan-deprecation-rules": "^1.1||^2.0",
+        "phpstan/phpstan-phpunit": "^1.3||^2.0",
+        "roave/security-advisories": "dev-latest"
     },
     "autoload": {
         "psr-4": {
